@@ -67,10 +67,19 @@ def getFeatureVector(kalimat,stopwords_indo,stopwords_eng):
         else:
             if word in list_no:
                 word = 'tidak'
-                featureVector.append(word)
-            else:
-                featureVector.append(word)
+            featureVector.append(word)
     return ' '.join(featureVector)
+
+def handling_neg(kalimat):
+    neg_word = []
+    for i in range(len(kalimat)):
+        word = kalimat[i]
+        if kalimat[i-1] != 'tidak':
+            neg_word.append(word)
+        else:
+            word = 'tidak_'+word
+            neg_word.append(word)
+    return neg_word
 
 def preprocessing_komentar(kalimat):
     preprocess_emoji = handling_emoji(kalimat)
@@ -91,25 +100,30 @@ for kalimat in corpus:
     y = getFeatureVector(x,stopwords_indo,stopwords_eng)
     z = stemming(y)
     kalimat_preprocess.append(z)
+# print(kalimat_preprocess[4])
+tokens = []
+after_handling = []
+for sentences in kalimat_preprocess:
+    token = nltk.word_tokenize(sentences)
+    tokens.append(token)
 
-# jumlah_kata = {}
-# tokens = []
-# for sentences in kalimat_preprocess:
-#     token = nltk.word_tokenize(sentences)
-#     tokens.append(token)
+for kalimat in tokens:
+    a = handling_neg(kalimat)
+    after_handling.append(a)
+print(after_handling[4])
 
-# for kalimat in tokens:
-#     for kata in kalimat:
-#         if kata in jumlah_kata:
-#             jumlah_kata[kata] += 1
-#         else:
-#             jumlah_kata[kata] = 1
-# # print(jumlah_kata)
+jumlah_kata = {}
+for kalimat in after_handling:
+    for kata in kalimat:
+        if kata in jumlah_kata:
+            jumlah_kata[kata] += 1
+        else:
+            jumlah_kata[kata] = 1
 
-# file_key = open('keys.txt','w')
-# for key in jumlah_kata.keys():
-#     file_key.write(str(key))
-#     file_key.write("\n")
-# file_key.close()
-# # print('selesai')
+file_key = open('keys.txt','w')
+for key in jumlah_kata.keys():
+    file_key.write(str(key))
+    file_key.write("\n")
+file_key.close()
+print('selesai')
 
