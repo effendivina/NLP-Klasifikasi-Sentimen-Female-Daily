@@ -4,6 +4,8 @@ import re
 import sys
 import nltk
 from nltk.corpus import stopwords
+import nltk.classify
+
 
 def handling_emoji(kalimat):
     emoji = []
@@ -68,7 +70,8 @@ def getFeatureVector(kalimat,stopwords_indo,stopwords_eng):
             if word in list_no:
                 word = 'tidak'
             featureVector.append(word)
-    return ' '.join(featureVector)
+    forstemming = ' '.join(featureVector)
+    return featureVector, forstemming
 
 def handling_neg(kalimat):
     neg_word = []
@@ -102,6 +105,14 @@ def create_freq_dict(after_handling):
     file_key.close()
     return jumlah_kata
 
+def ektraksi_fitur(kalimat):
+    words = set(kalimat)
+    features = {}
+    for word in featureList.keys():
+        features['contains(%s)' % word] = (word in words) 
+    return features
+
+
 corpus,kelas  = readfile.openarticle('Data-Train.csv')
 stopwords_indo = getStopWordsList('stopwords.txt')
 stopwords_eng = stopwords.words('english')
@@ -111,7 +122,7 @@ kalimat_preprocess = []
 featureList = []
 for kalimat in corpus:
     x = preprocessing_komentar(kalimat)
-    y = getFeatureVector(x,stopwords_indo,stopwords_eng)
+    feature,y = getFeatureVector(x,stopwords_indo,stopwords_eng)
     z = stemming(y)
     kalimat_preprocess.append(z)
 tokens = []
@@ -126,12 +137,26 @@ for i in range(len(tokens)):
     after_handling.append(a)
     komentar.append((a,kelas[i]))
 
-print(komentar)
+# print(komentar)
 
+featureList = create_freq_dict(after_handling)
 
+training_set = nltk.classify.util.apply_features(ektraksi_fitur,komentar)
 
+NBClassifier = nltk.NaiveBayesClassifier.train(training_set)
 
+kalimat_test = []
+test_preprocess = []
+hasil = []
+test,kelas_test = readfile.openarticle('Data-Test.csv')
+for kalimat in test:
+    klasifikasi,stemming = getFeatureVector(kalimat,stopwords_indo,stopwords_eng)
+    ekstraksi_handling = handling_neg(klasifikasi)
+    sentiment = NBClassifier.classify(ektraksi_fitur(ekstraksi_handling))
+    hasil.append((kalimat,sentiment))
 
+for sentiment in hasil:
+    print(sentiment)
 
 
 
