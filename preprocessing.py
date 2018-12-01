@@ -87,43 +87,51 @@ def preprocessing_komentar(kalimat):
     # preprocess_stemming = stemming(preprocess_punctuation)
     return preprocess_punctuation
 
+def create_freq_dict(after_handling):
+    jumlah_kata = {}
+    for kalimat in after_handling:
+        for kata in kalimat:
+            if kata in jumlah_kata:
+                jumlah_kata[kata] += 1
+            else:
+                jumlah_kata[kata] = 1
+    file_key = open('keys.txt','w')
+    for key in jumlah_kata.keys():
+        file_key.write(str(key))
+        file_key.write("\n")
+    file_key.close()
+    return jumlah_kata
+
 corpus,kelas  = readfile.openarticle('Data-Train.csv')
 stopwords_indo = getStopWordsList('stopwords.txt')
 stopwords_eng = stopwords.words('english')
 # print(stopwords_eng)
 
 kalimat_preprocess = []
-komentar = []
 featureList = []
 for kalimat in corpus:
     x = preprocessing_komentar(kalimat)
     y = getFeatureVector(x,stopwords_indo,stopwords_eng)
     z = stemming(y)
     kalimat_preprocess.append(z)
-# print(kalimat_preprocess[4])
 tokens = []
 after_handling = []
 for sentences in kalimat_preprocess:
     token = nltk.word_tokenize(sentences)
     tokens.append(token)
 
-for kalimat in tokens:
-    a = handling_neg(kalimat)
+komentar = []
+for i in range(len(tokens)):
+    a = handling_neg(tokens[i])
     after_handling.append(a)
-print(after_handling[4])
+    komentar.append((a,kelas[i]))
 
-jumlah_kata = {}
-for kalimat in after_handling:
-    for kata in kalimat:
-        if kata in jumlah_kata:
-            jumlah_kata[kata] += 1
-        else:
-            jumlah_kata[kata] = 1
+print(komentar)
 
-file_key = open('keys.txt','w')
-for key in jumlah_kata.keys():
-    file_key.write(str(key))
-    file_key.write("\n")
-file_key.close()
-print('selesai')
+
+
+
+
+
+
 
